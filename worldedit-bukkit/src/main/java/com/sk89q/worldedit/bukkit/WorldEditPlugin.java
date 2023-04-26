@@ -151,6 +151,7 @@ public class WorldEditPlugin extends JavaPlugin implements TabCompleter {
      */
     @Override
     public void onEnable() {
+        System.out.println("Tenet WorldEditPlugin has started!");
 
         // Catch bad things being done by naughty plugins that include
         // WorldEdit's classes
