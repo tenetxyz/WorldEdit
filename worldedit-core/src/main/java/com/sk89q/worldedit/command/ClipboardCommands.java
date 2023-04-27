@@ -20,10 +20,7 @@
 package com.sk89q.worldedit.command;
 
 import com.google.common.collect.Lists;
-import com.sk89q.worldedit.EditSession;
-import com.sk89q.worldedit.LocalSession;
-import com.sk89q.worldedit.MaxChangedBlocksException;
-import com.sk89q.worldedit.WorldEditException;
+import com.sk89q.worldedit.*;
 import com.sk89q.worldedit.command.util.CommandPermissions;
 import com.sk89q.worldedit.command.util.CommandPermissionsConditionGenerator;
 import com.sk89q.worldedit.command.util.Logging;
@@ -56,8 +53,14 @@ import org.enginehub.piston.annotation.param.Arg;
 import org.enginehub.piston.annotation.param.ArgFlag;
 import org.enginehub.piston.annotation.param.Switch;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.sk89q.worldedit.command.util.Logging.LogMode.PLACEMENT;
 import static com.sk89q.worldedit.command.util.Logging.LogMode.REGION;
 
@@ -66,6 +69,13 @@ import static com.sk89q.worldedit.command.util.Logging.LogMode.REGION;
  */
 @CommandContainer(superTypes = CommandPermissionsConditionGenerator.Registration.class)
 public class ClipboardCommands {
+
+    private final WorldEdit worldEdit;
+
+    public ClipboardCommands(WorldEdit worldEdit) {
+        checkNotNull(worldEdit);
+        this.worldEdit = worldEdit;
+    }
 
     /**
      * Throws if the region would allocate a clipboard larger than the block change limit.
@@ -105,6 +115,19 @@ public class ClipboardCommands {
         }
         Operations.completeLegacy(copy);
         session.setClipboard(new ClipboardHolder(clipboard));
+
+        // save selection to Tenet file
+        System.out.println("Tenet saving selection to file");
+        String filename = actor.getName() + "-selection";
+        File dir = worldEdit.getWorkingDirectoryPath("tenet").toFile();
+        File f = worldEdit.getSafeSaveFile(actor, dir, filename, "txt");
+        // write hello to file f
+        try {
+            Files.write(f.toPath(), "Hello".getBytes(StandardCharsets.UTF_8));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
 
         copy.getStatusMessages().forEach(actor::print);
     }
