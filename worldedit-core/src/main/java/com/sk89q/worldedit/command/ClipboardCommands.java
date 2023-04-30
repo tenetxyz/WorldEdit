@@ -20,6 +20,7 @@
 package com.sk89q.worldedit.command;
 
 import com.google.common.collect.Lists;
+import com.google.gson.Gson;
 import com.sk89q.worldedit.*;
 import com.sk89q.worldedit.command.util.CommandPermissions;
 import com.sk89q.worldedit.command.util.CommandPermissionsConditionGenerator;
@@ -116,18 +117,26 @@ public class ClipboardCommands {
         Operations.completeLegacy(copy);
         session.setClipboard(new ClipboardHolder(clipboard));
 
+
         // save selection to Tenet file
         System.out.println("Tenet saving selection to file");
         String filename = actor.getName() + "-selection";
         File dir = worldEdit.getWorkingDirectoryPath("tenet").toFile();
-        File f = worldEdit.getSafeSaveFile(actor, dir, filename, "txt");
-        // write hello to file f
+        File f = worldEdit.getSafeSaveFile(actor, dir, filename, "json");
+
+        // we just need a list of coordinates
+        List<BlockVector3> coords = Lists.newArrayList();
+        for (BlockVector3 vec : region) {
+            coords.add(vec);
+        }
+        // turn coords into Json
+        Gson gson = new Gson();
+        String json = gson.toJson(coords);
         try {
-            Files.write(f.toPath(), "Hello".getBytes(StandardCharsets.UTF_8));
+            Files.write(f.toPath(), json.getBytes(StandardCharsets.UTF_8));
         } catch (IOException e) {
             e.printStackTrace();
         }
-
 
         copy.getStatusMessages().forEach(actor::print);
     }
