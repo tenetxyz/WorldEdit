@@ -20,6 +20,8 @@
 package com.sk89q.worldedit.command;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
+import com.google.gson.Gson;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.WorldEdit;
@@ -80,6 +82,11 @@ import org.enginehub.piston.annotation.param.ArgFlag;
 import org.enginehub.piston.annotation.param.Switch;
 import org.enginehub.piston.exception.StopExecutionException;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
@@ -565,6 +572,7 @@ public class SelectionCommands {
                           Integer page) throws WorldEditException {
         List<Countable<BlockState>> distribution;
 
+        Region save_region = null;
         if (page == null) {
             if (clipboardDistr) {
                 Clipboard clipboard = session.getClipboard().getClipboard(); // throws if missing
@@ -572,8 +580,10 @@ public class SelectionCommands {
                 RegionVisitor visitor = new RegionVisitor(clipboard.getRegion(), count);
                 Operations.completeBlindly(visitor);
                 distribution = count.getDistribution();
+                save_region = clipboard.getRegion();
             } else {
                 try (EditSession editSession = session.createEditSession(actor)) {
+                    save_region = session.getSelection(world);
                     distribution = editSession.getBlockDistribution(session.getSelection(world), separateStates);
                 }
             }
@@ -590,6 +600,28 @@ public class SelectionCommands {
         if (distribution.isEmpty()) {  // *Should* always be false
             actor.printError(TranslatableComponent.of("worldedit.distr.no-blocks"));
             return;
+        }
+
+        // save selection to Tenet file
+        String filename = actor.getName() + "-selection";
+        File dir = we.getWorkingDirectoryPath("tenet").toFile();
+        // check if dir exists, otherwise create it
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+        File f = we.getSafeSaveFile(actor, dir, filename, "json");
+        // we just need a list of coordinates
+        List<BlockVector3> coords = Lists.newArrayList();
+        for (BlockVector3 vec : save_region) {
+            coords.add(vec);
+        }
+        // turn coords into Json
+        Gson gson = new Gson();
+        String json = gson.toJson(coords);
+        try {
+            Files.write(f.toPath(), json.getBytes(StandardCharsets.UTF_8));
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
         final int finalPage = page;
