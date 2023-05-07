@@ -371,7 +371,7 @@ public final class PlatformCommandManager {
         this.registration.register(
             commandManager,
             ClipboardCommandsRegistration.builder(),
-            new ClipboardCommands(worldEdit)
+            new ClipboardCommands()
         );
         GeneralCommands.register(
             registration,

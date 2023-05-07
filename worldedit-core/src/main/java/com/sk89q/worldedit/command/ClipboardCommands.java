@@ -20,8 +20,6 @@
 package com.sk89q.worldedit.command;
 
 import com.google.common.collect.Lists;
-import com.google.gson.Gson;
-import com.sk89q.worldedit.*;
 import com.sk89q.worldedit.command.util.CommandPermissions;
 import com.sk89q.worldedit.command.util.CommandPermissionsConditionGenerator;
 import com.sk89q.worldedit.command.util.Logging;
@@ -70,13 +68,6 @@ import static com.sk89q.worldedit.command.util.Logging.LogMode.REGION;
  */
 @CommandContainer(superTypes = CommandPermissionsConditionGenerator.Registration.class)
 public class ClipboardCommands {
-
-    private final WorldEdit worldEdit;
-
-    public ClipboardCommands(WorldEdit worldEdit) {
-        checkNotNull(worldEdit);
-        this.worldEdit = worldEdit;
-    }
 
     /**
      * Throws if the region would allocate a clipboard larger than the block change limit.
